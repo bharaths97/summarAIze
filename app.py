@@ -1,6 +1,8 @@
 import requests
 import xml.etree.ElementTree as ET
 import nvdlib
+import pandas as pd
+import csv
 
 # Function to get CVE information from NVD API
 def get_cve_info(cpe_name, api_key):
@@ -29,29 +31,59 @@ def collect_cve_info(cpe_name, cve_data):
 
         if base_severity not in ['HIGH','CRITICAL']:
             continue
-        results.append((cpe_name, cve_id, description, base_severity))
+        results.append([cpe_name, cve_id, description, base_severity])
     
     return results
 
-
-def main():
-    name = input("Enter the name of application: ")
-    api_key = '79a87459-16d2-4e8e-952a-f1ee528c59e2'
+def vul_Collater(AppName,PresentIPs,api_key):
     
     try:
-        r = nvdlib.searchCPE(keywordSearch = name, limit = 2)
+        r = nvdlib.searchCPE(keywordSearch = AppName, limit = 2)
+        output=pd.DataFrame()
         for eachCPE in r:
             print(eachCPE.cpeName)
             cve_data = get_cve_info(eachCPE.cpeName, api_key)
             results = collect_cve_info(eachCPE.cpeName, cve_data)
-            print(len(results))
+            #print(len(results))
+        
             if results:
                 for result in results:
-                    print(result)
+                    print([AppName]+result+[PresentIPs])
+                    new_row=pd.Series([AppName]+result+[PresentIPs])
+                    output=pd.concat([output,new_row.to_frame().T], ignore_index=True)
+                    break
             else:
                 print("No vulnerabilities found for the specified CPE name.")
+        return output
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
+
+def csv_parser_APP_IP(filename,apiKey):
+    fields = []
+    rows = []
+    filePath="data\\"+filename+".csv"
+    print(filePath)
+    with open(filePath, 'r') as csvfile:
+        csvreader = csv.reader(csvfile)
+        fields = next(csvreader)
+        output = pd.DataFrame()
+
+        for row in csvreader:
+            vulData=vul_Collater(row[1]+" "+row[2],row[3],apiKey)
+            output = pd.concat([output,vulData], ignore_index=True)
+            #print(output)
+        
+        output.columns=["Appname", "CPE", "cve_id", "description", "base_severity","IPs_Present"]
+
+        output.to_csv('Vulnerability_Report.csv', index=False)
+
+        #return output
+
+def main():
+    AppName_CSV = input("Enter the name of App_IP csv : ")
+    apiKey=input("Enter the Api key : ")
+    csv_parser_APP_IP(AppName_CSV,apiKey)
+    
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import nvdlib
 import pandas as pd
 import csv
-
+import time
 # Function to get CVE information from NVD API
 def get_cve_info(cpe_name, api_key):
     url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
@@ -13,8 +13,10 @@ def get_cve_info(cpe_name, api_key):
     headers = {
         'apiKey': api_key
     }
+    
     response = requests.get(url, params=params, headers=headers)
     response.raise_for_status()  # Raise an exception for HTTP errors
+    time.sleep(1)  # Add a 1-second delay between requests
     return response.json()
 
 # Function to collect the CVE information into tuples
@@ -51,7 +53,7 @@ def vul_Collater(AppName,PresentIPs,api_key):
                     print([AppName]+result+[PresentIPs])
                     new_row=pd.Series([AppName]+result+[PresentIPs])
                     output=pd.concat([output,new_row.to_frame().T], ignore_index=True)
-                    break
+ 
             else:
                 print("No vulnerabilities found for the specified CPE name.")
         return output

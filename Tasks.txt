@@ -1,3 +1,11 @@
 1) System to hardware mapping, system to OS mapping
 2) Multiple CPE results for same product (differ based on version and build)
 3) To do Data list : System misconfig, network config, domain mapping, AD stuff
+
+
+Initial
+In Apache HTTP Server 2.4 release 2.4.38 and prior, a race condition in mod_auth_digest when running in a threaded server could allow a user with valid credentials to authenticate using another username, bypassing configured access control restrictions.
+
+Generated:
+In Apache HTTP Server versions 2.4.38 and earlier, there's a security flaw in the mod_auth_digest module. This flaw is a race condition that can occur in threaded server setups. It means that a user with valid login credentials might be able to log in as a different user, bypassing the set access controls.
+To fix this issue, update the server to a version newer than 2.4.38 where this vulnerability has been addressed.
